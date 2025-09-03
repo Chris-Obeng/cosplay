@@ -9,9 +9,6 @@ interface ImageUploaderProps {
 export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-
   const handleFile = useCallback((file: File | null) => {
     if (file && file.type.startsWith('image/')) {
       if (file.size > 10 * 1024 * 1024) { // 10MB limit
@@ -52,62 +49,6 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) =
     }
   };
 
-  const openCamera = async () => {
-    setIsCameraOpen(true);
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-        if(videoRef.current) {
-            videoRef.current.srcObject = stream;
-        }
-    } catch (err) {
-        console.error("Error accessing camera: ", err);
-        alert("Could not access camera. Please ensure permissions are granted.");
-        setIsCameraOpen(false);
-    }
-  };
-
-  const takePicture = () => {
-      const video = videoRef.current;
-      if (video) {
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg');
-        onImageUpload(dataUrl);
-        closeCamera();
-      }
-  };
-
-  const closeCamera = () => {
-      const video = videoRef.current;
-      if (video && video.srcObject) {
-          const stream = video.srcObject as MediaStream;
-          stream.getTracks().forEach(track => track.stop());
-      }
-      setIsCameraOpen(false);
-  };
-
-
-  if (isCameraOpen) {
-    return (
-        <div className="w-full max-w-2xl mx-auto animate-spring-in">
-             <div className="relative bg-black rounded-2xl overflow-hidden aspect-[3/4]">
-                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover"></video>
-                <button onClick={closeCamera} className="absolute top-4 right-4 h-10 w-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/75 transition-colors">
-                    <Icons.close size={20}/>
-                </button>
-            </div>
-             <div className="mt-6 flex justify-center">
-                <button onClick={takePicture} className="h-16 w-16 bg-white rounded-full flex items-center justify-center ring-4 ring-white/30 hover:ring-white/50 transition-all">
-                    <div className="h-14 w-14 bg-white rounded-full border-2 border-space-gray"></div>
-                </button>
-             </div>
-        </div>
-    );
-  }
-
   return (
     <div className="w-full max-w-2xl mx-auto p-8 animate-spring-in">
       <div
@@ -136,16 +77,6 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) =
           onChange={(e) => handleFile(e.target.files ? e.target.files[0] : null)}
         />
         <p className="text-xs text-gray-500 mt-4">JPG, PNG, WEBP, HEIC accepted. Max 10MB.</p>
-      </div>
-
-       <div className="flex justify-center mt-6">
-        <button
-          onClick={openCamera}
-          className="flex items-center space-x-2 px-6 py-3 bg-card-surface text-gray-300 font-medium rounded-lg hover:bg-border-subtle hover:text-white transition-colors"
-        >
-          <Icons.camera size={20} />
-          <span>Use Camera</span>
-        </button>
       </div>
     </div>
   );

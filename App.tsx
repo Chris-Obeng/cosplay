@@ -1,8 +1,10 @@
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Header } from './components/Header';
 import { LandingPage } from './components/LandingPage';
 import { CosplayCreator } from './components/CosplayCreator';
+import GalleryPage from './components/GalleryPage';
 
 type Theme = 'light' | 'dark';
 
@@ -45,26 +47,29 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 };
 
 const App: React.FC = () => {
-    const [showApp, setShowApp] = useState(false);
-
-    const handleLaunchApp = () => {
-        setShowApp(true);
-    };
-
     return (
-        <ThemeProvider>
-            <div className="min-h-screen bg-bg-primary text-text-primary font-sans">
-                <Header />
-                <main className="pt-16">
-                    <SignedOut>
-                        <LandingPage />
-                    </SignedOut>
-                    <SignedIn>
-                        <CosplayCreator />
-                    </SignedIn>
-                </main>
-            </div>
-        </ThemeProvider>
+        <Router>
+            <ThemeProvider>
+                <div className="min-h-screen bg-bg-primary text-text-primary font-sans">
+                    <Header />
+                    <main className="pt-16">
+                        <Routes>
+                            <Route path="/gallery" element={<GalleryPage />} />
+                            <Route path="/" element={
+                                <>
+                                    <SignedOut>
+                                        <LandingPage />
+                                    </SignedOut>
+                                    <SignedIn>
+                                        <CosplayCreator />
+                                    </SignedIn>
+                                </>
+                            } />
+                        </Routes>
+                    </main>
+                </div>
+            </ThemeProvider>
+        </Router>
     );
 };
 

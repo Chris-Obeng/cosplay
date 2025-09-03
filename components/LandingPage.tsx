@@ -856,7 +856,7 @@ export const LandingPage: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-gray-400">
-              © 2024 Cosplay Transformer AI. Making magic happen, one transformation at a time.
+              © 2024 CosplayMe. Making magic happen, one transformation at a time.
             </p>
           </div>
         </div>

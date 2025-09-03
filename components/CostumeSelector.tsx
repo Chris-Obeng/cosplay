@@ -77,13 +77,9 @@ const CostumeCard: React.FC<{ costume: Costume; onSelect: () => void; isSelected
 
 
 export const CostumeSelector: React.FC<CostumeSelectorProps> = ({ userImage, onImageUpload, onClearPhoto, onStartTransform, isLoading }) => {
-  const [activeCategory, setActiveCategory] = useState<CostumeCategory | 'All'>('All');
   const [selectedCostume, setSelectedCostume] = useState<Costume | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleFile = useCallback((file: File | null) => {
     if (file && file.type.startsWith('image/')) {
@@ -144,42 +140,7 @@ export const CostumeSelector: React.FC<CostumeSelectorProps> = ({ userImage, onI
     }
   };
   
-  // Camera handlers
-  const openCamera = async () => {
-    setIsCameraOpen(true);
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-        if(videoRef.current) videoRef.current.srcObject = stream;
-    } catch (err) {
-        console.error("Error accessing camera: ", err);
-        alert("Could not access camera. Please ensure permissions are granted.");
-        setIsCameraOpen(false);
-    }
-  };
 
-  const takePicture = () => {
-      const video = videoRef.current;
-      if (video) {
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
-        onImageUpload(canvas.toDataURL('image/jpeg'));
-        closeCamera();
-      }
-  };
-
-  const closeCamera = () => {
-      const video = videoRef.current;
-      if (video && video.srcObject) {
-          (video.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-      }
-      setIsCameraOpen(false);
-  };
-
-  const filteredCostumes = activeCategory === 'All'
-    ? COSTUMES
-    : COSTUMES.filter(c => c.category === activeCategory);
     
   const isCustomCostumeSelected = selectedCostume?.category === CostumeCategory.CUSTOM;
 
@@ -200,18 +161,6 @@ export const CostumeSelector: React.FC<CostumeSelectorProps> = ({ userImage, onI
                               <Icons.upload size={32} className="text-white mb-2" />
                               <p className="font-semibold text-white">Change Photo</p>
                           </div>
-                        </div>
-                    ) : isCameraOpen ? (
-                        <div className="relative bg-black rounded-2xl overflow-hidden w-full h-full flex flex-col">
-                            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover"></video>
-                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent flex justify-center">
-                                <button onClick={takePicture} className="h-16 w-16 bg-white rounded-full flex items-center justify-center ring-4 ring-white/30 hover:ring-white/50 transition-all">
-                                    <div className="h-14 w-14 bg-white rounded-full border-2 border-space-gray"></div>
-                                </button>
-                            </div>
-                            <button onClick={closeCamera} className="absolute top-4 right-4 h-10 w-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/75 transition-colors">
-                                <Icons.close size={20}/>
-                            </button>
                         </div>
                     ) : (
                         <div
@@ -235,14 +184,6 @@ export const CostumeSelector: React.FC<CostumeSelectorProps> = ({ userImage, onI
                     )}
                     </div>
                     
-                    {!userImage && !isCameraOpen && (
-                        <div className="flex justify-center mb-5 -mt-2">
-                             <button onClick={openCamera} className="flex items-center space-x-2 px-6 py-3 bg-bg-secondary text-text-secondary font-medium rounded-lg hover:bg-border-primary hover:text-text-primary transition-colors duration-300">
-                                <Icons.camera size={20} />
-                                <span>Use Camera</span>
-                            </button>
-                        </div>
-                    )}
 
                      <button
                         onClick={() => selectedCostume && userImage && onStartTransform(selectedCostume)}
@@ -264,24 +205,7 @@ export const CostumeSelector: React.FC<CostumeSelectorProps> = ({ userImage, onI
             <div className="w-full lg:w-2/3 xl:w-3/4">
                 <h2 className="text-2xl sm:text-3xl font-bold text-text-primary mb-2 transition-colors duration-300">Choose a Costume</h2>
                 <p className="text-text-secondary mb-6 transition-colors duration-300">Select a style or upload your own to begin the transformation.</p>
-                <div className="flex space-x-2 mb-8 overflow-x-auto pb-2">
-                    <button 
-                        onClick={() => setActiveCategory('All')}
-                        className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors duration-300 whitespace-nowrap ${activeCategory === 'All' ? 'bg-accent text-white' : 'bg-bg-secondary text-text-secondary hover:bg-border-primary'}`}
-                    >
-                        All
-                    </button>
-                    {CATEGORIES.map(category => (
-                         <button 
-                            key={category}
-                            onClick={() => setActiveCategory(category)}
-                            className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors duration-300 whitespace-nowrap ${activeCategory === category ? 'bg-accent text-white' : 'bg-bg-secondary text-text-secondary hover:bg-border-primary'}`}
-                        >
-                            {category}
-                        </button>
-                    ))}
-                </div>
-                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mt-8">
                     <UploadCostumeCard
                         onClick={() => fileInputRef.current?.click()}
                         onDrop={(e) => handleDrop(e, true)}
@@ -299,7 +223,7 @@ export const CostumeSelector: React.FC<CostumeSelectorProps> = ({ userImage, onI
                         className="hidden"
                         onChange={(e) => handleCustomCostumeFile(e.target.files ? e.target.files[0] : null)}
                     />
-                    {filteredCostumes.map(costume => (
+                    {COSTUMES.map(costume => (
                         <CostumeCard 
                             key={costume.id} 
                             costume={costume} 

@@ -1,5 +1,5 @@
 {
-  "name": "Cosplay Transformer AI",
+  "name": "CosplayMe",
   "description": "A premium cosplay transformation app that uses AI to merge your photos with iconic costume designs. Experience high-quality, realistic transformations with an elegant, Apple-inspired interface.",
   "requestFramePermissions": [
     "camera"
